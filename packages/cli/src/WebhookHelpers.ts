@@ -36,6 +36,7 @@ import {
 	WorkflowExecuteMode,
 } from 'n8n-workflow';
 
+import * as config from '../config';
 
 const activeExecutions = ActiveExecutions.getInstance();
 
@@ -235,9 +236,21 @@ export function getWorkflowWebhooksBasic(workflow: Workflow): IWebhookData[] {
 					responseCode,
 				});
 			} else {
+				let saveDataOnSuccess = config.get('executions.saveDataOnSuccess') as string;
+				if (workflowData.settings !== undefined) {
+					const saveDataOnSuccessWorkflow = workflowData.settings.saveDataSuccessExecution as string;
+					saveDataOnSuccess = saveDataOnSuccessWorkflow || saveDataOnSuccess;
+				}
+
+				let hint = `This workflow is configured to not save successful executions. You can change this via the workflow's settings`;
+				if (saveDataOnSuccess === 'all') {
+					hint = 'You can view the execution from your execution log';
+				}
+
 				responseCallback(null, {
 					data: {
 						message: 'Workflow got started.',
+						hint,
 					},
 					responseCode,
 				});
